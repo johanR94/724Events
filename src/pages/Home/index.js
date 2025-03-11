@@ -2,7 +2,6 @@ import Menu from "../../containers/Menu";
 import ServiceCard from "../../components/ServiceCard";
 import EventCard from "../../components/EventCard";
 import PeopleCard from "../../components/PeopleCard";
-
 import "./style.scss";
 import EventList from "../../containers/Events";
 import Slider from "../../containers/Slider";
@@ -10,26 +9,21 @@ import Logo from "../../components/Logo";
 import Icon from "../../components/Icon";
 import Form from "../../containers/Form";
 import Modal from "../../containers/Modal";
+import ModalEvent from "../../containers/ModalEvent";
 import { useData } from "../../contexts/DataContext";
+
 
 const Page = () => {
   const last = useData();
-
-  // Vérifie que les données existent et contiennent des événements
-  if (!last || !last.data || !last.data.events || last.data.events.length === 0) {
-    return <p>Pas d’événements disponibles</p>; // Gestion d'erreur si aucune donnée n'est disponible
-  }
-
-  // Créer un tableau de dates uniques
-  const uniqueDates = Array.from(new Set(last.data.events.map((event) => event.date)));
-
-  // Convertir les dates en objets Date et trier par date décroissante
-  const dateArray = uniqueDates.map(date => new Date(date));
-  const mostRecentDate = dateArray.sort((a, b) => b - a)[0];
+  // Vérifier si les événements existent
+  const events = last?.data?.events || [];
 
   // Trouver l'événement avec la date la plus récente
-  const mostRecentEvent = last.data.events.find((event) => new Date(event.date).getTime() === mostRecentDate.getTime());
-
+  const mostRecentEvent = events.reduce((mostRecent, event) => {
+    const eventDate = new Date(event.date);
+    return eventDate > (mostRecent.date || new Date(0)) ? { date: eventDate, event } : mostRecent;
+  }, {}).event || null;
+  
 
   return (
     <>
@@ -124,7 +118,7 @@ const Page = () => {
           >
             {({ setIsOpened }) => (
               <Form
-                onSuccess={() => setIsOpened(true)}
+                onSuccess={() => {setIsOpened(true)}}
                 onError={() => null}
               />
             )}
@@ -134,13 +128,18 @@ const Page = () => {
       <footer className="row">
         <div className="col presta">
           <h3>Notre dernière prestation</h3>
-          <EventCard
-            imageSrc={mostRecentEvent?.cover}
-            title={mostRecentEvent?.title}
-            date={new Date(mostRecentEvent?.date)}
-            small
-            label="boom"
-          />
+          {/* Ajouter un Modal pour afficher les détails de l'événement */} 
+          <Modal Content={<ModalEvent event={mostRecentEvent} />}>    
+          {({ setIsOpened }) => (
+            <EventCard
+              onClick={() => setIsOpened(true)} // Ouvrir le Modal
+              imageSrc={mostRecentEvent?.cover }
+              title={mostRecentEvent?.title }
+              date={new Date(mostRecentEvent?.date) }
+              small
+              label="boom"
+            />
+          )}</Modal>
         </div>
         <div className="col contact">
           <h3>Contactez-nous</h3>
