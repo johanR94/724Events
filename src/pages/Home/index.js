@@ -21,9 +21,9 @@ const Page = () => {
   // Trouver l'événement avec la date la plus récente
   const mostRecentEvent = events.reduce((mostRecent, event) => {
     const eventDate = new Date(event.date);
-    return eventDate > (mostRecent.date || new Date(0)) ? { date: eventDate, event } : mostRecent;
-  }, {}).event || null;
-  
+    return!mostRecent || eventDate > new Date(mostRecent.date) ? event : mostRecent;
+  }, null);
+ 
 
   return (
     <>
@@ -129,17 +129,21 @@ const Page = () => {
         <div className="col presta">
           <h3>Notre dernière prestation</h3>
           {/* Ajouter un Modal pour afficher les détails de l'événement */} 
-          <Modal Content={<ModalEvent event={mostRecentEvent} />}>    
+          {mostRecentEvent ? (
+          <Modal Content={<ModalEvent event={mostRecentEvent}  />}>    
           {({ setIsOpened }) => (
             <EventCard
-              onClick={() => setIsOpened(true)} // Ouvrir le Modal
-              imageSrc={mostRecentEvent?.cover }
-              title={mostRecentEvent?.title }
-              date={new Date(mostRecentEvent?.date) }
+              onClick={() => setIsOpened(true) } // Ouvrir le Modal
+              imageSrc={mostRecentEvent?.cover || " default img" }
+              title={mostRecentEvent?.title|| "default title" }
+              date={new Date(mostRecentEvent?.date)|| "default date" }
               small
               label="boom"
             />
           )}</Modal>
+        ) : (
+          <p>Aucun événement récent disponible.</p>
+        )}
         </div>
         <div className="col contact">
           <h3>Contactez-nous</h3>
